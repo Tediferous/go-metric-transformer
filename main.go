@@ -3,17 +3,16 @@ package main
 import (
 	"fmt"
 	"strings"
-	"strconv"
 	"net"
 	"os"
 )
 
-type metric struct (
+type metric struct {
 	measurement string
 	tags map[string]string
 	values map[string]string
 	time string 
-)
+}
 
 func CheckError(err error) {
 	if err != nil {
@@ -36,7 +35,7 @@ func FluxParse (s string) (m metric){
 		}
 	}
 
-	for _, element := range strings.Split(splt[1],","){
+	for _, element := range strings.Split(split[1],","){
 		m.values[strings.Split(element,"=")[0]] =  strings.Split(element,"=")[1] 
 	}
 	
@@ -50,7 +49,7 @@ func ToWave(m metric) (w []string){
 		var line string = m.measurement+"."+k
 		line += " " + v
 		line += " " + m.time
-		line += " source=" + WHATEVER?
+		line += " source=" + "connect?IdunnoIllfixthislater "
 
 		for ke, va := range m.tags {
 			line +=  ke +"=\"" + va +"\""
@@ -74,14 +73,20 @@ func main() {
 
 	buf := make([]byte, 1024)
 
-	for {
+	ListenerConn, err := net.ResolveUDPAddr("udp", "127.0.0.1:7778")
+	CheckError(err)
+
+	for {//ever
 		n, addr, err := ServerConn.ReadFromUDP(buf)
 		fmt.Printf("received: %s from: %s\n", string(buf[0:n]), addr)
+		CheckError(err)
 
-		if err != nil {
-			fmt.Println("error: ", err)
+		messages := ToWave(FluxParse(string(buf[0:n])))
+		for _, message := range messages {
+			_, err = ServerConn.WriteTo([]byte(message), ListenerConn)
+			CheckError(err)
 		}
 
-		ServerConn.WriteTo(buf[0:n], addr)
+		//ServerConn.WriteTo(buf[0:n], addr)
 	}
 }
