@@ -25,6 +25,8 @@ func FluxParse (s string) (m metric){
 //Takes metrics in line protocol and parses them out to a struct
 	var doOnce bool = true
 	split := strings.Split(s, " ")
+	m.tags = make(map[string]string)
+	m.values = make(map[string]string)
 	
 	for _, element := range strings.Split(split[0], ","){
 		if doOnce {
@@ -52,7 +54,7 @@ func ToWave(m metric) (w []string){
 		line += " source=" + "connect?IdunnoIllfixthislater "
 
 		for ke, va := range m.tags {
-			line +=  ke +"=\"" + va +"\""
+			line += " " + ke +"=\"" + va +"\""
 		}
 
 		w = append(w, line)
